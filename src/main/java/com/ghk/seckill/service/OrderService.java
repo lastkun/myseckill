@@ -4,6 +4,7 @@ import com.ghk.seckill.dao.OrderDao;
 import com.ghk.seckill.domian.Customer;
 import com.ghk.seckill.domian.OrderInfo;
 import com.ghk.seckill.domian.SeckillOrder;
+import com.ghk.seckill.utils.IdGenerator;
 import com.ghk.seckill.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,8 @@ import java.util.Date;
 
 @Service
 public class OrderService {
+    @Autowired
+    IdGenerator idGenerator;
 
     @Resource
     OrderDao orderDao;
@@ -24,7 +27,9 @@ public class OrderService {
 
     @Transactional
     public OrderInfo writeOrder(Customer customer, GoodsVo goods) {
+        String orderId = idGenerator.nextId();
         OrderInfo orderInfo = new OrderInfo();
+        orderInfo.setId(orderId);
         orderInfo.setCreateTime(new Date().toString());
         orderInfo.setGoodsCount(1);
         orderInfo.setGoodsId(goods.getId());
@@ -33,8 +38,9 @@ public class OrderService {
         orderInfo.setGoodsPrice(goods.getSeckillPrice());
         orderInfo.setStatus(0);
         orderInfo.setCustomerId(customer.getCustomerId());
-        String orderId = orderDao.insertOrder(orderInfo);
+        orderDao.insertOrder(orderInfo);
         SeckillOrder seckillOrder = new SeckillOrder();
+        seckillOrder.setId(idGenerator.nextId());
         seckillOrder.setCustomerId(customer.getCustomerId());
         seckillOrder.setGoodsId(goods.getId());
         seckillOrder.setOrderId(orderId);

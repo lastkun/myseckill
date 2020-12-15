@@ -26,7 +26,6 @@ public class GoodsService {
     public void reduceStock(GoodsVo goods) {
         SeckillGoods seckillGoods = new SeckillGoods();
         seckillGoods.setGoodsId(goods.getId());
-        //这里为什么传个秒杀商品对象过去就获取到id了
         goodsDao.reduceStock(seckillGoods);
     }
 }

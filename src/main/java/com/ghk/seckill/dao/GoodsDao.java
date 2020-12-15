@@ -19,6 +19,6 @@ public interface GoodsDao {
     @Select("SELECT G.*,SG.SECKILL_PRICE,SG.START_TIME,SG.END_TIME,SG.SECKILL_STOCK FROM GOODS G LEFT JOIN SECKILL_GOODS SG ON G.ID = SG.ID WHERE G.ID=#{goodsId}")
     GoodsVo getGoodsVoById(@Param("goodsId") String goodsId);
 
-    @Update("UPDATE SECKILL_GOODS SET SET SECKILL_STOCK = SECKILL_STOCK-1 WHERE GOODS_ID = #{id} ")
+    @Update("UPDATE SECKILL_GOODS SET SECKILL_STOCK = SECKILL_STOCK-1 WHERE GOODS_ID = #{goodsId} ")
     int reduceStock(SeckillGoods seckillGoods);
 }
