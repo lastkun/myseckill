@@ -2,6 +2,8 @@ package com.ghk.seckill.controller;
 
 
 import com.ghk.seckill.domian.Customer;
+import com.ghk.seckill.redis.ListKey;
+import com.ghk.seckill.redis.RedisService;
 import com.ghk.seckill.service.CustomerService;
 import com.ghk.seckill.service.GoodsService;
 import com.ghk.seckill.vo.GoodsVo;
@@ -9,11 +11,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.context.IWebContext;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,21 +33,40 @@ public class GoodsController {
     @Autowired
     GoodsService goodsService;
 
+    @Autowired
+    RedisService redisService;
+
+    @Autowired
+    ThymeleafViewResolver resolver;
+
+
     /**
-     *
+     * thymeleaf.spring5的API中把大部分的功能移到了IWebContext下面,用来区分边界。
+     * 剔除了ApplicationContext 过多的依赖，现在thymeleaf渲染不再过多依赖spring容器
      * @param model
      * @param customer  在config.WebConfig里重写了addArgumentResolvers方法，会给customer赋值
      * @return
      */
-    @RequestMapping("/to_goods_page")
-    public String toPage(Model model, Customer customer){
+    @RequestMapping(value = "/to_goods_page",produces = "text/html")
+    @ResponseBody
+    public String toPage(HttpServletRequest request,HttpServletResponse response,Model model, Customer customer){
         model.addAttribute("customer",customer);
         List<GoodsVo> goodsListWithSeckill = goodsService.findGoodsListWithSeckill();
         model.addAttribute("goodsList",goodsListWithSeckill);
-        if (customer == null)
-            return "login";
-        else
-            return "goods";
+        //判断redis是否已经缓存了页面
+        String page = redisService.get(ListKey.goodsListKey, "page", String.class);
+        //如果存在 返回缓存中的页面
+        if (!StringUtils.isEmpty(page)){
+            return page;
+        }
+        //如果不存在 手动渲染
+        // 将页面信息存入缓存thymeleafViewResolver.getTemplateEngine().process("模板名称",context)
+        IWebContext context = new WebContext(request,response,request.getServletContext(),request.getLocale(),model.asMap());
+        page = resolver.getTemplateEngine().process("goods", context);
+        if (!StringUtils.isEmpty(page)){
+            redisService.set(ListKey.goodsListKey,"",page);
+        }
+        return page;
     }
 
 
