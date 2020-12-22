@@ -2,13 +2,14 @@ package com.ghk.seckill.controller;
 
 
 import com.ghk.seckill.domian.Customer;
-import com.ghk.seckill.redis.ListKey;
+import com.ghk.seckill.redis.PageCacheKey;
 import com.ghk.seckill.redis.RedisService;
 import com.ghk.seckill.service.CustomerService;
 import com.ghk.seckill.service.GoodsService;
 import com.ghk.seckill.vo.GoodsVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +42,10 @@ public class GoodsController {
 
 
     /**
+     * String类的isEmpty()方法判断字符串长度是否为0，StringUtils类则先判断是否为空，再判断长度是否为0
      * thymeleaf.spring5的API中把大部分的功能移到了IWebContext下面,用来区分边界。
      * 剔除了ApplicationContext 过多的依赖，现在thymeleaf渲染不再过多依赖spring容器
+     * @ RequestMapping注解的produces属性指定返回数据的类型和编码，一般和@ResponseBody注解配合使用
      * @param model
      * @param customer  在config.WebConfig里重写了addArgumentResolvers方法，会给customer赋值
      * @return
@@ -50,33 +53,41 @@ public class GoodsController {
     @RequestMapping(value = "/to_goods_page",produces = "text/html")
     @ResponseBody
     public String toPage(HttpServletRequest request,HttpServletResponse response,Model model, Customer customer){
+        // ? 是否要判断customer !=null
         model.addAttribute("customer",customer);
-        List<GoodsVo> goodsListWithSeckill = goodsService.findGoodsListWithSeckill();
-        model.addAttribute("goodsList",goodsListWithSeckill);
+
         //判断redis是否已经缓存了页面
-        String page = redisService.get(ListKey.goodsListKey, "page", String.class);
+        String page = redisService.get(PageCacheKey.goodsPageCacheKey, "page", String.class);
         //如果存在 返回缓存中的页面
         if (!StringUtils.isEmpty(page)){
             return page;
         }
+
+        List<GoodsVo> goodsListWithSeckill = goodsService.findGoodsListWithSeckill();
+        model.addAttribute("goodsList",goodsListWithSeckill);
+
         //如果不存在 手动渲染
         // 将页面信息存入缓存thymeleafViewResolver.getTemplateEngine().process("模板名称",context)
         IWebContext context = new WebContext(request,response,request.getServletContext(),request.getLocale(),model.asMap());
         page = resolver.getTemplateEngine().process("goods", context);
         if (!StringUtils.isEmpty(page)){
-            redisService.set(ListKey.goodsListKey,"",page);
+            redisService.set(PageCacheKey.goodsPageCacheKey,"",page);
         }
         return page;
     }
 
 
-    @RequestMapping("/to_detail_page/{goodsId}")
-    public String toDetail(Model model,Customer customer , @PathVariable("goodsId") String goodsId) throws ParseException {
+    @RequestMapping(value = "/to_detail_page/{goodsId}" , produces = "text/html")
+    @ResponseBody
+    public String toDetail(HttpServletRequest request,HttpServletResponse response,Model model, Customer customer , @PathVariable("goodsId") String goodsId) throws ParseException {
         model.addAttribute("customer",customer);
-        if (customer == null)
-            return "login";
-        GoodsVo goodsVoById = goodsService.getGoodsVoById(goodsId);
 
+        String page = redisService.get(PageCacheKey.goodsDetailCacheKey, goodsId, String.class);
+        if (!StringUtils.isEmpty(page)){
+            return page;
+        }
+
+        GoodsVo goodsVoById = goodsService.getGoodsVoById(goodsId);
         model.addAttribute("goods",goodsVoById);
 
         //倒计时
@@ -109,7 +120,13 @@ public class GoodsController {
 
         model.addAttribute("status",status);
         model.addAttribute("remainTime",timeTemp);
-        return "goods_detail";
 
+        IWebContext context = new WebContext(request,response,request.getServletContext(),request.getLocale(),model.asMap());
+        page = resolver.getTemplateEngine().process("goods_detail",context);
+        if (!StringUtils.isEmpty(page)){
+            redisService.set(PageCacheKey.goodsDetailCacheKey,goodsId,page);
+        }
+
+        return page;
     }
 }

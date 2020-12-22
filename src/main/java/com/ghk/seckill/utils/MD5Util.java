@@ -25,7 +25,5 @@ public class MD5Util {
         return hex(newPwd + salt);
     }
 
-    public static void main(String[] args) {
-        System.out.println(encryptionPwdToDatabase(encryptionInputPwd("123456"),"asd1fg"));
-    }
+
 }
