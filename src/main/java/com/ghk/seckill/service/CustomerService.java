@@ -9,6 +9,7 @@ import com.ghk.seckill.result.CodeMsg;
 import com.ghk.seckill.utils.MD5Util;
 import com.ghk.seckill.utils.UUIDUtil;
 import com.ghk.seckill.vo.LoginVo;
+import com.sun.org.apache.bcel.internal.classfile.Code;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +27,47 @@ public class CustomerService {
     @Autowired
     RedisService redisService;
 
+    /**
+     * 对象级缓存
+     * @param id
+     * @return
+     */
     public Customer getCustomerById(String id){
-        return customerDao.getCustomerById(id);
+        //取缓存
+        Customer customer = redisService.get(CustomerKey.getByCusId, id, Customer.class);
+        if (customer != null)
+            return customer;
+        //缓存中没有存储的customer对象 从数据库中获取
+        customer = customerDao.getCustomerById(id);
+        if (customer != null){
+            redisService.set(CustomerKey.getByCusId,id,customer);
+        }
+        return customer;
     }
+
+
+    /**
+     * 如果用到对象级缓存 修改密码的时候要更新缓存中存储的对象
+     * @param token
+     * @param id
+     * @param newPassword
+     * @return
+     */
+    public boolean updatePassword(String token,String id,String newPassword){
+        Customer customer = getCustomerById(id);
+        if (customer == null){
+            throw new BusinessException(CodeMsg.CUSTOMER_NOT_EXIST);
+        }
+        String newDBPsw = MD5Util.encryptionPwdToDatabase(newPassword, customer.getSalt());
+        //缓存 处理和用户密码相关的缓存 token和customer对象
+        redisService.delete(CustomerKey.getByCusId,id);
+        customer.setPassword(newPassword);
+        redisService.set(CustomerKey.token,id,customer);
+        //修改数据库中的密码
+        customerDao.updateById(customer);
+        return true;
+    }
+
 
     public boolean login(HttpServletResponse response,LoginVo loginVo) {
         if (loginVo == null)
