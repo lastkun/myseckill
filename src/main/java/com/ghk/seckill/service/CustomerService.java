@@ -48,6 +48,9 @@ public class CustomerService {
 
     /**
      * 如果用到对象级缓存 修改密码的时候要更新缓存中存储的对象
+     * 应该先更新数据库 更新成功后 再更新缓存  顺序不可改变
+     * 如果先更新缓存的话，有一个更新操作和一个查询操作，当更新操作删除缓存后，查询操作没有获取到缓存
+     * 会将老数据读出来后，存入缓存中，然后更新操作更新了数据库，这个时候缓存中存储的数据是脏数据
      * @param token
      * @param id
      * @param newPassword
@@ -59,12 +62,13 @@ public class CustomerService {
             throw new BusinessException(CodeMsg.CUSTOMER_NOT_EXIST);
         }
         String newDBPsw = MD5Util.encryptionPwdToDatabase(newPassword, customer.getSalt());
-        //缓存 处理和用户密码相关的缓存 token和customer对象
-        redisService.delete(CustomerKey.getByCusId,id);
-        customer.setPassword(newPassword);
-        redisService.set(CustomerKey.token,id,customer);
         //修改数据库中的密码
+        customer.setPassword(newPassword);
         customerDao.updateById(customer);
+
+        //处理和用户密码相关的缓存 token和customer对象
+        redisService.delete(CustomerKey.getByCusId,id);
+        redisService.set(CustomerKey.token,id,customer);
         return true;
     }
 
