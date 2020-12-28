@@ -9,7 +9,6 @@ import com.ghk.seckill.result.CodeMsg;
 import com.ghk.seckill.utils.MD5Util;
 import com.ghk.seckill.utils.UUIDUtil;
 import com.ghk.seckill.vo.LoginVo;
-import com.sun.org.apache.bcel.internal.classfile.Code;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
