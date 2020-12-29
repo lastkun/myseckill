@@ -7,6 +7,7 @@ public class CodeMsg {
     public static CodeMsg SUCCESS = new CodeMsg(0,"success");
     public static CodeMsg ERROR_SERVER = new CodeMsg(1001,"服务端异常！");
     public static CodeMsg BIND_EXCEPTION = new CodeMsg(1002,    "校验未通过!");
+    public static CodeMsg SESSION_ERROR = new CodeMsg(1003,"您未登录或登录已失效，请重新登录！");
     //登录
     public static CodeMsg ERROR_PASSWORD = new CodeMsg(2002,"密码不正确，请重新输入!");
     public static CodeMsg CUSTOMER_NOT_EXIST = new CodeMsg(2003,"不存在该用户，请检查用户名，或者立即注册!");
