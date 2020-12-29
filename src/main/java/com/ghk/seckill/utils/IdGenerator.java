@@ -99,10 +99,6 @@ public class IdGenerator {
         return System.currentTimeMillis();
     }
 
-    public static void main(String[] args) {
-        IdGenerator idGenerator = new IdGenerator();
-        String s = idGenerator.nextId();
-        System.out.println(s);
-    }
+
 }
 
