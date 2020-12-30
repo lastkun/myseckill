@@ -17,7 +17,7 @@ public class MQSender {
 
     public void sendSeckillMessage(SeckillMessage message){
         String msg = BeanAndStringConverter.beanToStr(message);
-        logger.info("seckill send msg:"+msg);
+        //logger.info("seckill send msg:"+msg);
         amqpTemplate.convertAndSend(RabbitConfig.SECKILL_QUEUE,msg);
     }
 }
