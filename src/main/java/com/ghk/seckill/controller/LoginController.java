@@ -26,10 +26,10 @@ public class LoginController {
     @Autowired
     RedisService redisService;
 
-    @RequestMapping("/to_page")
-    public String toPage(){
-        return "login";
-    }
+//    @RequestMapping("/to_page")
+//    public String toPage(){
+//        return "login";
+//    }
 
     @RequestMapping("/do_login")
     @ResponseBody
