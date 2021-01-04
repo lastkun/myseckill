@@ -1,5 +1,6 @@
 package com.ghk.seckill.controller;
 
+import com.ghk.seckill.domian.Customer;
 import com.ghk.seckill.redis.RedisService;
 import com.ghk.seckill.result.Result;
 import com.ghk.seckill.service.CustomerService;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -31,13 +33,17 @@ public class LoginController {
 //        return "login";
 //    }
 
+    /**
+     *使用@requestbody注解
+     */
     @RequestMapping("/do_login")
     @ResponseBody
-    public Result<Boolean> doLogin(HttpServletResponse response, @Valid LoginVo loginVo){
+    public Result<Customer> doLogin(HttpServletResponse response, @Valid @RequestBody LoginVo loginVo){
 
-        customerService.login(response,loginVo);
+        System.out.println(loginVo.toString());
+        Customer customer = customerService.login(response, loginVo);
 
-        return Result.success(true);
+        return Result.success(customer);
     }
 
 }

@@ -72,7 +72,7 @@ public class CustomerService {
     }
 
 
-    public boolean login(HttpServletResponse response,LoginVo loginVo) {
+    public Customer login(HttpServletResponse response,LoginVo loginVo) {
         if (loginVo == null)
             throw new BusinessException(CodeMsg.ERROR_SERVER);
         String customerId = loginVo.getCustomerId();
@@ -92,7 +92,7 @@ public class CustomerService {
         }
         String token = UUIDUtil.getUUID();
         addCookie(customer,token,response);
-        return true;
+        return customer;
     }
 
     public void addCookie(Customer customer,String token,HttpServletResponse response){
