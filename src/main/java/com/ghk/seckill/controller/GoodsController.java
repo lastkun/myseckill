@@ -42,7 +42,7 @@ public class GoodsController {
      * thymeleaf.spring5的API中把大部分的功能移到了IWebContext下面,用来区分边界。
      * 剔除了ApplicationContext 过多的依赖，现在thymeleaf渲染不再过多依赖spring容器
      * @ RequestMapping注解的produces属性指定返回数据的类型和编码，一般和@ResponseBody注解配合使用
-     * @param customer  在config.WebConfig里重写了addArgumentResolvers方法，会给customer赋值
+     *    在config.WebConfig里重写了addArgumentResolvers方法，会给customer赋值
      * @return
      */
     @RequestMapping(value = "/goods_list")
